@@ -1,6 +1,7 @@
 val kotlin: String by project
 val logback: String by project
 val html: String by project
+val datetime: String by project
 val mongo: String by project
 val koin: String by project
 val junit: String by project
@@ -8,7 +9,7 @@ val cache4k: String by project
 
 plugins {
     kotlin("jvm") version "2.0.0"
-    id("io.ktor.plugin") version "3.0.0-beta-1"
+    id("io.ktor.plugin") version "2.3.12"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0"
 }
 
@@ -16,7 +17,7 @@ group = "me.henriquelluiz"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("me.henriquelluiz.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -37,6 +38,7 @@ dependencies {
     implementation("io.ktor:ktor-server-caching-headers-jvm")
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetime")
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:$mongo")
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("ch.qos.logback:logback-classic:$logback")
