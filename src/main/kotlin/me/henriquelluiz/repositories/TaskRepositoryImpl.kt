@@ -68,6 +68,7 @@ class TaskRepositoryImpl(
     private inline fun <T> handleDatabaseOperation(operation: () -> T): T? {
         return try {
             operation()
+
         } catch (ex: MongoException) {
             KtorSimpleLogger("me.henriquelluiz.repositories.TaskRepository")
                 .error("Database operation failed: ${ex.message}")

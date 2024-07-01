@@ -2,8 +2,10 @@ package me.henriquelluiz.plugins
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cachingheaders.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 
 fun Application.configureHTTP() {
@@ -15,6 +17,7 @@ fun Application.configureHTTP() {
         allowHeader(HttpHeaders.Authorization)
         anyHost()
     }
+
     install(CachingHeaders) {
         options { _, outgoingContent ->
             when (outgoingContent.contentType?.withoutParameters()) {
@@ -22,5 +25,9 @@ fun Application.configureHTTP() {
                 else -> null
             }
         }
+    }
+
+    install(ContentNegotiation) {
+        json()
     }
 }
