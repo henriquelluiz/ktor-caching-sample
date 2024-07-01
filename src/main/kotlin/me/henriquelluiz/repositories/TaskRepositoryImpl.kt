@@ -1,15 +1,14 @@
 package me.henriquelluiz.repositories
 
-import com.mongodb.MongoException
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import io.ktor.util.logging.*
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import me.henriquelluiz.models.Task
 import org.bson.BsonValue
 import org.bson.types.ObjectId
+import org.slf4j.LoggerFactory
 
 class TaskRepositoryImpl(
     private val db: MongoDatabase
@@ -50,7 +49,7 @@ class TaskRepositoryImpl(
     }
 
     override suspend fun update(id: ObjectId, task: Task): Long = handleDatabaseOperation {
-        val filter = Filters.eq("id", id)
+        val filter = Filters.eq("_id", id)
         val updates = Updates.combine(
             Updates.set(Task::name.name, task.name),
             Updates.set(Task::note.name, task.note),
@@ -69,8 +68,8 @@ class TaskRepositoryImpl(
         return try {
             operation()
 
-        } catch (ex: MongoException) {
-            KtorSimpleLogger("me.henriquelluiz.repositories.TaskRepository")
+        } catch (ex: Exception) {
+            LoggerFactory.getLogger(this::class.java)
                 .error("Database operation failed: ${ex.message}")
             null
         }

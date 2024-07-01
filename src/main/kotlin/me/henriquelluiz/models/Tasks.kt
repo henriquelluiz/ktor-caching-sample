@@ -1,14 +1,20 @@
 package me.henriquelluiz.models
 
 import io.ktor.resources.*
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
+import me.henriquelluiz.models.serealization.ObjectIdSerializer
 import org.bson.types.ObjectId
 
+@Suppress("unused")
 @Resource("/api/tasks")
-class Tasks(
-    val page: Int? = 0,
-    val size: Int? = 1,
-) {
+class Tasks {
+
+    @Resource("paginated{page}{size}")
+    class Paginated(
+        val parent: Tasks = Tasks(),
+        val page: Int? = 0,
+        val size: Int? = 1
+    )
 
     @Resource("new")
     class New(val parent: Tasks = Tasks())
@@ -17,8 +23,20 @@ class Tasks(
     class Name(val parent: Tasks = Tasks(), val name: String)
 
     @Resource("{id}")
-    class Id(val parent: Tasks = Tasks(), @Contextual val id: ObjectId) {
-        class Edit(val parent: Id)
-        class Delete(val parent: Id)
-    }
+    class Id(
+        val parent: Tasks = Tasks(),
+        @Serializable(with = ObjectIdSerializer::class) val id: ObjectId
+    )
+
+    @Resource("edit{id}")
+    class Edit(
+        val parent: Tasks = Tasks(),
+        @Serializable(with = ObjectIdSerializer::class) val id: ObjectId
+    )
+
+    @Resource("delete{id}")
+    class Delete(
+        val parent: Tasks = Tasks(),
+        @Serializable(with = ObjectIdSerializer::class) val id: ObjectId
+    )
 }
