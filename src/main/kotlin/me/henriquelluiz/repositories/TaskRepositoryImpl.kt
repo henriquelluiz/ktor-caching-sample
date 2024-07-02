@@ -65,12 +65,13 @@ class TaskRepositoryImpl(
     } ?: 0
 
     private inline fun <T> handleDatabaseOperation(operation: () -> T): T? {
+        val log = LoggerFactory.getLogger(this::class.java)
         return try {
+            log.info("An operation has executed in database")
             operation()
 
         } catch (ex: Exception) {
-            LoggerFactory.getLogger(this::class.java)
-                .error("Database operation failed: ${ex.message}")
+                log.error("Database operation failed: ${ex.message}")
             null
         }
     }

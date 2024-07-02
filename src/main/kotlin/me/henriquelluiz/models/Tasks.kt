@@ -19,10 +19,10 @@ class Tasks {
     @Resource("new")
     class New(val parent: Tasks = Tasks())
 
-    @Resource("{name}")
+    @Resource("name/{name}")
     class Name(val parent: Tasks = Tasks(), val name: String)
 
-    @Resource("{id}")
+    @Resource("id/{id}")
     class Id(
         val parent: Tasks = Tasks(),
         @Serializable(with = ObjectIdSerializer::class) val id: ObjectId
