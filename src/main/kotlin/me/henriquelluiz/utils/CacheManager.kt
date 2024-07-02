@@ -9,15 +9,15 @@ import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 
 class CacheManager {
-    private val store = Cache.Builder<String, String>().build()
+    private val storage = Cache.Builder<String, String>().build()
 
-    suspend fun <T> handleCache(
+    suspend fun <T> handleReadOperations(
         call: ApplicationCall,
         key: String,
         serializer: KSerializer<T>,
         getData: suspend () -> T?
     ) {
-        val cachedData = store.get(key)
+        val cachedData = storage.get(key)
         if (cachedData != null) {
             val eTag = generateETag(cachedData)
             val clientETag = call.request.headers[HttpHeaders.IfNoneMatch]
@@ -35,13 +35,26 @@ class CacheManager {
         } else {
             val data = getData() ?: return call.respond(HttpStatusCode.NotFound)
             val encodedData = Json.encodeToString(serializer, data)
-            store.put(key, encodedData)
+            storage.put(key, encodedData)
             call.respondText(
                 status = HttpStatusCode.OK,
                 text = encodedData,
                 contentType = ContentType.Application.Json
             )
         }
+    }
+
+    suspend fun <T> handleWriteOperations(
+        call: ApplicationCall,
+        statusCode: HttpStatusCode,
+        key: String,
+        serializer: KSerializer<T>,
+        getCurrentData: suspend () -> T?
+    ) {
+        val data = getCurrentData() ?: return call.respond(HttpStatusCode.NotFound)
+        val encodedData = Json.encodeToString(serializer, data)
+        storage.put(key, encodedData)
+        call.respond(statusCode)
     }
 
     private fun generateETag(content: String): String {

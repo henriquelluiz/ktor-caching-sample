@@ -55,13 +55,13 @@ fun Application.configureTaskRoutes() {
             val page = call.parameters["page"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
             val size = call.parameters["size"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
 
-            cache.handleCache(call, "paginatedTasks", ListSerializer(Task.serializer())) {
+            cache.handleReadOperations(call, "paginatedTasks", ListSerializer(Task.serializer())) {
                 repository.getAllPaginated(page, size)
             }
         }
 
         get<Tasks> {
-            cache.handleCache(call, "tasks", ListSerializer(Task.serializer())) {
+            cache.handleReadOperations(call, "tasks", ListSerializer(Task.serializer())) {
                 repository.getAll()
             }
 
@@ -69,7 +69,7 @@ fun Application.configureTaskRoutes() {
 
         get<Tasks.Name> {
             val name = call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-            cache.handleCache(call, name, Task.serializer()) {
+            cache.handleReadOperations(call, name, Task.serializer()) {
                 repository.getByName(name)
             }
         }
@@ -77,21 +77,42 @@ fun Application.configureTaskRoutes() {
         put<Tasks.Edit> {
             val id = call.parameters["id"] ?: return@put call.respond(HttpStatusCode.BadRequest)
             val modifiedCount = repository.update(ObjectId(id), call.receive<Task>())
-            if (modifiedCount < 1L) {
-                return@put call.respond(HttpStatusCode.InternalServerError)
+
+            if (modifiedCount.toInt() != 1) {
+                return@put call.respond(HttpStatusCode.ExpectationFailed)
+            } else {
+                cache.handleWriteOperations(
+                    call = call,
+                    statusCode = HttpStatusCode.OK,
+                    key = "tasks",
+                    serializer = ListSerializer(Task.serializer())
+                ) {
+                    repository.getAll()
+                }
             }
-            call.respond(HttpStatusCode.OK)
         }
 
         delete<Tasks.Delete> {
             val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
-            repository.delete(ObjectId(id))
-            call.respond(HttpStatusCode.OK)
+            val deletedCount = repository.delete(ObjectId(id))
+            if (deletedCount.toInt() != 1) {
+                call.respond(HttpStatusCode.ExpectationFailed)
+            } else {
+                cache.handleWriteOperations(
+                    call = call,
+                    statusCode = HttpStatusCode.OK,
+                    key = "tasks",
+                    serializer = ListSerializer(Task.serializer())
+                ) {
+                    repository.getAll()
+                }
+            }
+
         }
 
         get<Tasks.Id> {
             val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-            cache.handleCache(call, id, Task.serializer()) {
+            cache.handleReadOperations(call, id, Task.serializer()) {
                 repository.getById(ObjectId(id))
             }
         }
@@ -99,8 +120,17 @@ fun Application.configureTaskRoutes() {
         post<Tasks> {
             val task = call.receive<Task>()
             repository.save(task) ?: return@post call.respond(HttpStatusCode.InternalServerError)
+
             call.response.header("Location", "/api/tasks/${task.id}")
-            call.respond(HttpStatusCode.Created)
+
+            cache.handleWriteOperations(
+                call = call,
+                statusCode = HttpStatusCode.Created,
+                key = "tasks",
+                serializer = ListSerializer(Task.serializer())
+            ) {
+                repository.getAll()
+            }
         }
     }
 }
