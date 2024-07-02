@@ -4,6 +4,7 @@ import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.ktor.server.application.*
 import me.henriquelluiz.repositories.TaskRepository
 import me.henriquelluiz.repositories.TaskRepositoryImpl
+import me.henriquelluiz.utils.CacheManager
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -26,7 +27,8 @@ fun Application.configureDI() {
                 }
             },
 
-            module { single<TaskRepository> { TaskRepositoryImpl(get()) } }
+            module { single<TaskRepository> { TaskRepositoryImpl(get()) } },
+            module { single { CacheManager() } }
         )
     }
 }

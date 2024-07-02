@@ -1,6 +1,5 @@
 package me.henriquelluiz.routes
 
-import io.github.reactivecircus.cache4k.Cache
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
@@ -19,7 +18,7 @@ import kotlinx.serialization.json.Json
 import me.henriquelluiz.models.Task
 import me.henriquelluiz.models.Tasks
 import me.henriquelluiz.repositories.TaskRepository
-import me.henriquelluiz.utils.generateETag
+import me.henriquelluiz.utils.CacheManager
 import org.bson.types.ObjectId
 import org.koin.ktor.ext.inject
 
@@ -49,47 +48,30 @@ fun Application.configureTaskRoutes() {
     }
 
     val repository by inject<TaskRepository>()
-    val cache = Cache.Builder<String, String>().build()
+    val cache by inject<CacheManager>()
 
     routing {
         get<Tasks.Paginated> {
             val page = call.parameters["page"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
             val size = call.parameters["size"]?.toInt() ?: return@get call.respond(HttpStatusCode.BadRequest)
 
-            call.respond(
-                status = HttpStatusCode.OK,
-                message = repository.getAllPaginated(page, size)
-            )
+            cache.handleCache(call, "paginatedTasks", ListSerializer(Task.serializer())) {
+                repository.getAllPaginated(page, size)
+            }
         }
 
         get<Tasks> {
-            val cachedTasks = cache.get("tasks")
-            if (cachedTasks != null) {
-                val etag = generateETag(cachedTasks)
-                call.response.header(HttpHeaders.ETag, etag)
-
-                val clientETag = call.request.header(HttpHeaders.IfNoneMatch)
-                if (clientETag == etag) {
-                    call.respond(HttpStatusCode.NotModified)
-                } else {
-                    call.respondText(
-                        status = HttpStatusCode.OK,
-                        text = cachedTasks,
-                        contentType = ContentType.Application.Json,
-                    )
-                }
-            } else {
-                val tasks = repository.getAll()
-                val encodedTasks = Json.encodeToString(ListSerializer(Task.serializer()), tasks)
-                cache.put("tasks", encodedTasks)
-                call.respond(HttpStatusCode.OK, tasks)
+            cache.handleCache(call, "tasks", ListSerializer(Task.serializer())) {
+                repository.getAll()
             }
+
         }
 
         get<Tasks.Name> {
             val name = call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-            val task = repository.getByName(name) ?: call.respond(HttpStatusCode.NotFound)
-            call.respond(HttpStatusCode.OK, task)
+            cache.handleCache(call, name, Task.serializer()) {
+                repository.getByName(name)
+            }
         }
 
         put<Tasks.Edit> {
@@ -109,28 +91,8 @@ fun Application.configureTaskRoutes() {
 
         get<Tasks.Id> {
             val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-            val cachedTask = cache.get(id)
-
-            if (cachedTask != null) {
-                val etag = generateETag(cachedTask)
-                call.response.header(HttpHeaders.ETag, etag)
-
-                val clientETag = call.request.header(HttpHeaders.IfNoneMatch)
-                if (clientETag == etag) {
-                    call.respond(HttpStatusCode.NotModified)
-                } else {
-                    call.respondText(
-                        status = HttpStatusCode.OK,
-                        text = cachedTask,
-                        contentType = ContentType.Application.Json
-                    )
-                }
-
-            } else {
-                val task = repository.getById(ObjectId(id)) ?: return@get call.respond(HttpStatusCode.NotFound)
-                val jsonTask = Json.encodeToString(Task.serializer(), task)
-                cache.put(id, jsonTask)
-                call.respond(HttpStatusCode.OK, task)
+            cache.handleCache(call, id, Task.serializer()) {
+                repository.getById(ObjectId(id))
             }
         }
 
