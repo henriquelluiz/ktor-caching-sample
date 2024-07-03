@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import me.henriquelluiz.models.Task
 import org.bson.BsonValue
+import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 
@@ -50,12 +51,12 @@ class TaskRepositoryImpl(
 
     override suspend fun update(id: ObjectId, task: Task): Long = handleDatabaseOperation {
         val filter = Filters.eq("_id", id)
-        val updates = Updates.combine(
-            Updates.set(Task::name.name, task.name),
-            Updates.set(Task::note.name, task.note),
-            Updates.set(Task::createdAt.name, task.createdAt),
-        )
-        collection.updateOne(filter, updates)
+        val updates = mutableListOf<Bson>()
+        updates.add(Updates.set(Task::name.name, task.name))
+        updates.add(Updates.set(Task::note.name, task.note))
+        if (task.createdAt != null) { Updates.set(Task::createdAt.name, task.createdAt) }
+
+        collection.updateOne(filter, Updates.combine(updates))
             .modifiedCount
     } ?: 0
 
@@ -71,7 +72,7 @@ class TaskRepositoryImpl(
             operation()
 
         } catch (ex: Exception) {
-                log.error("Database operation failed: ${ex.message}")
+            log.error("Database operation failed: ${ex.message}")
             null
         }
     }

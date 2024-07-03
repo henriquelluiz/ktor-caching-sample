@@ -17,5 +17,7 @@ data class Task(
     val note: String,
 
     @Serializable(with = LocalDateSerializer::class)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    var createdAt: LocalDateTime? = null
 )
+
+fun Task.setId(newId: ObjectId): Task = Task(newId, name, note, createdAt)
