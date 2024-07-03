@@ -7,9 +7,12 @@ import io.ktor.server.response.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import java.security.MessageDigest
+import kotlin.time.Duration.Companion.hours
 
 class CacheManager {
-    private val storage = Cache.Builder<String, String>().build()
+    private val storage = Cache.Builder<String, String>()
+        .expireAfterWrite(1.hours)
+        .build()
 
     suspend fun <T> handleReadOperations(
         call: ApplicationCall,
@@ -33,7 +36,7 @@ class CacheManager {
                 )
             }
         } else {
-            val data = getData() ?: return call.respond(HttpStatusCode.NotFound)
+            val data = getData() ?: throw RuntimeException("Task not found")
             val encodedData = Json.encodeToString(serializer, data)
             storage.put(key, encodedData)
             call.respondText(

@@ -71,9 +71,8 @@ fun Application.configureTaskRoutes() {
 
         get<Tasks.Name> {
             val name = call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-            cache.handleReadOperations(call, name, Task.serializer()) {
-                repository.getByName(name)
-            }
+            val task = repository.getByName(name) ?: return@get call.respond(HttpStatusCode.NotFound)
+            cache.handleReadOperations(call, task.id.toString(), Task.serializer()) { task }
         }
 
         put<Tasks.Edit> {
@@ -131,7 +130,9 @@ fun Application.configureTaskRoutes() {
 
         post<Tasks> {
             val task = call.receive<Task>()
-            if (task.createdAt == null) { task.createdAt = LocalDateTime.now() }
+            if (task.createdAt == null) {
+                task.createdAt = LocalDateTime.now()
+            }
             repository.save(task) ?: return@post call.respond(HttpStatusCode.InternalServerError)
 
             call.response.header("Location", "/api/tasks/${task.id}")
