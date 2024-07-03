@@ -17,10 +17,12 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import me.henriquelluiz.models.Task
 import me.henriquelluiz.models.Tasks
+import me.henriquelluiz.models.setId
 import me.henriquelluiz.repositories.TaskRepository
 import me.henriquelluiz.utils.CacheManager
 import org.bson.types.ObjectId
 import org.koin.ktor.ext.inject
+import java.time.LocalDateTime
 
 fun Application.configureTaskRoutes() {
 
@@ -76,11 +78,20 @@ fun Application.configureTaskRoutes() {
 
         put<Tasks.Edit> {
             val id = call.parameters["id"] ?: return@put call.respond(HttpStatusCode.BadRequest)
-            val modifiedCount = repository.update(ObjectId(id), call.receive<Task>())
+            val task = call.receive<Task>()
+            val objectId = ObjectId(id)
+            val modifiedCount = repository.update(objectId, task)
 
             if (modifiedCount.toInt() != 1) {
                 return@put call.respond(HttpStatusCode.ExpectationFailed)
             } else {
+                task.setId(objectId)
+                cache.updateSingleData(
+                    key = id,
+                    serializer = Task.serializer(),
+                    data = task
+                )
+
                 cache.handleWriteOperations(
                     call = call,
                     statusCode = HttpStatusCode.OK,
@@ -98,6 +109,7 @@ fun Application.configureTaskRoutes() {
             if (deletedCount.toInt() != 1) {
                 call.respond(HttpStatusCode.ExpectationFailed)
             } else {
+                cache.invalidateData(id)
                 cache.handleWriteOperations(
                     call = call,
                     statusCode = HttpStatusCode.OK,
@@ -119,6 +131,7 @@ fun Application.configureTaskRoutes() {
 
         post<Tasks> {
             val task = call.receive<Task>()
+            if (task.createdAt == null) { task.createdAt = LocalDateTime.now() }
             repository.save(task) ?: return@post call.respond(HttpStatusCode.InternalServerError)
 
             call.response.header("Location", "/api/tasks/${task.id}")

@@ -57,6 +57,13 @@ class CacheManager {
         call.respond(statusCode)
     }
 
+    fun <T> updateSingleData(key: String, serializer: KSerializer<T>, data: T) {
+        val encodedData = Json.encodeToString(serializer, data)
+        storage.put(key, encodedData)
+    }
+
+    fun invalidateData(key: String) = storage.invalidate(key)
+
     private fun generateETag(content: String): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(content.toByteArray())
         return digest.joinToString("") { "%02x".format(it) }
