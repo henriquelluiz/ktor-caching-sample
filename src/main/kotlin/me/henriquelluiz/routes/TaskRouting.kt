@@ -1,12 +1,9 @@
 package me.henriquelluiz.routes
 
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.post
@@ -16,7 +13,7 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import me.henriquelluiz.models.Task
-import me.henriquelluiz.models.Tasks
+import me.henriquelluiz.routes.typesafe.Tasks
 import me.henriquelluiz.models.setId
 import me.henriquelluiz.repositories.TaskRepository
 import me.henriquelluiz.utils.CacheManager
@@ -26,27 +23,8 @@ import java.time.LocalDateTime
 
 fun Application.configureTaskRoutes() {
 
-    install(Resources)
     install(ContentNegotiation) {
         json(Json { prettyPrint = true })
-    }
-
-    install(CORS) {
-        allowMethod(HttpMethod.Put)
-        allowMethod(HttpMethod.Delete)
-        allowMethod(HttpMethod.Options)
-        allowHeader("If-None-Match")
-        allowHeader("If-Modified-Since")
-        allowHost("localhost")
-    }
-
-    install(CachingHeaders) {
-        options { _, content ->
-            when (content.contentType?.withoutParameters()) {
-                ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 120))
-                else -> null
-            }
-        }
     }
 
     val repository by inject<TaskRepository>()

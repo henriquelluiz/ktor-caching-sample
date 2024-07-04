@@ -1,4 +1,4 @@
-package me.henriquelluiz.models
+package me.henriquelluiz.routes.typesafe
 
 import io.ktor.resources.*
 import kotlinx.serialization.Serializable
