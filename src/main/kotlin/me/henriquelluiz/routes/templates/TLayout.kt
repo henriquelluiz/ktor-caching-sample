@@ -3,13 +3,16 @@ package me.henriquelluiz.routes.templates
 import io.ktor.server.html.*
 import kotlinx.html.*
 
-class BaseLayout(
+class TLayout(
     val stylePath: String,
     val scriptPath: String,
-    val documentTitle: String
+    val pageTitle: String,
+    val childTemplate: Template<FlowContent>,
 ) : Template<HTML> {
     val header = Placeholder<FlowContent>()
+    val content = TemplatePlaceholder<Template<FlowContent>>()
     override fun HTML.apply() {
+        classes = setOf("theme-light")
         head {
             lang = "en"
             meta { charset = "utf-8" }
@@ -22,15 +25,18 @@ class BaseLayout(
                 httpEquiv = "X-UA-Compatible"
                 content = "IE=edge"
             }
-            link(rel = "stylesheet", href = stylePath)
-            script {
-                src = "https://cdn.jsdelivr.net/npm/beercss@3.6.5/dist/cdn/beer.min.js"
-                type = "module"
-            }
-            title(documentTitle)
+            link(href = stylePath, rel = "stylesheet", type = "text/css")
+            title(pageTitle)
         }
         body {
-            h1 { insert(header) }
+            h1 {
+                classes = setOf("is-size-2", "is-family-code", "has-text-weight-bold", "has-text-centered", "mt-6")
+                insert(header)
+            }
+            div {
+                classes = setOf("container", "is-flex", "is-justify-content-center", "is-align-content-center", "mt-6")
+                insert(childTemplate, content)
+            }
             script {
                 src = scriptPath
                 type = "text/javascript"

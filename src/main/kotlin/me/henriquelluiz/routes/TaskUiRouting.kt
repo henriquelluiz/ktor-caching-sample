@@ -5,27 +5,27 @@ import io.ktor.server.html.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import me.henriquelluiz.repositories.TaskRepository
-import me.henriquelluiz.routes.templates.BaseLayout
-import me.henriquelluiz.utils.CacheManager
+import me.henriquelluiz.routes.templates.TLayout
+import me.henriquelluiz.routes.templates.TableComponent
 import org.koin.ktor.ext.inject
 
 fun Application.configureTaskUiRouting() {
     val repository by inject<TaskRepository>()
-    val cache by inject<CacheManager>()
 
     routing {
         staticResources("static", "static")
 
         get {
             call.respondHtmlTemplate(
-                BaseLayout(
+                TLayout(
                     stylePath = "/static/css/style.css",
                     scriptPath = "/static/js/script.js",
-                    documentTitle = "Home"
+                    pageTitle = "List of Tasks",
+                    childTemplate = TableComponent(repository.getAll())
                 )
             ) {
                 header {
-                    +"Home Page"
+                    +"All Tasks"
                 }
             }
         }

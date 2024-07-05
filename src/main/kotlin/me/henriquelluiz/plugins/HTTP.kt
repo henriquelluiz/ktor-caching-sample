@@ -22,9 +22,9 @@ fun Application.configureHTTP() {
         options { _, content ->
             when (content.contentType?.withoutParameters()) {
                 ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
-                ContentType.Text.Html -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
-                ContentType.Text.CSS -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
-                ContentType.Text.JavaScript -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 3600))
+                ContentType.Text.Html -> CachingOptions(CacheControl.NoCache(CacheControl.Visibility.Public))
+                ContentType.Text.CSS -> CachingOptions(CacheControl.NoCache(CacheControl.Visibility.Public))
+                ContentType.Text.JavaScript -> CachingOptions(CacheControl.NoCache(CacheControl.Visibility.Public))
                 else -> null
             }
         }
