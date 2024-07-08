@@ -33,12 +33,15 @@ class TableComponent(val tasks: List<Task>) : Template<FlowContent> {
                                 "is-align-content-center", "icon-gap",
                                 "is-clickable"
                             )
-                            span {
-                                classes = setOf("icon", "material-symbols-outlined")
+                            a {
+                                classes = setOf("icon", "material-symbols-outlined", "has-text-warning")
+                                href = "/edit?id=${task.id}"
                                 +"edit"
                             }
-                            span {
-                                classes = setOf("icon", "material-symbols-outlined")
+
+                            a {
+                                classes = setOf("icon", "material-symbols-outlined", "has-text-danger")
+                                href = "/delete?id=${task.id}"
                                 +"delete"
                             }
                         }

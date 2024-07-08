@@ -7,12 +7,13 @@ class TLayout(
     val stylePath: String,
     val scriptPath: String,
     val pageTitle: String,
-    val childTemplate: Template<FlowContent>,
+    val childTemplate: Template<FlowContent>
 ) : Template<HTML> {
     val header = Placeholder<FlowContent>()
+    val button = Placeholder<FlowContent>()
     val content = TemplatePlaceholder<Template<FlowContent>>()
     override fun HTML.apply() {
-        classes = setOf("theme-light")
+        //classes = setOf("theme-light")
         head {
             lang = "en"
             meta { charset = "utf-8" }
@@ -39,20 +40,7 @@ class TLayout(
                     "is-justify-content-center", "is-flex-direction-column",
                     "is-align-content-center", "mt-6"
                 )
-                div {
-                    classes = setOf("")
-                    button {
-                        classes = setOf("button", "is-primary", "is-medium")
-                        span {
-                            classes = setOf("icon")
-                            i {
-                                classes = setOf("material-symbols-outlined")
-                                +"add_task"
-                            }
-                        }
-                        span { +"New task" }
-                    }
-                }
+                insert(button)
                 insert(childTemplate, content)
             }
             script {
