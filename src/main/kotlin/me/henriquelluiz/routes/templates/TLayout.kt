@@ -34,7 +34,25 @@ class TLayout(
                 insert(header)
             }
             div {
-                classes = setOf("container", "is-flex", "is-justify-content-center", "is-align-content-center", "mt-6")
+                classes = setOf(
+                    "container", "is-flex", "container-init-gap",
+                    "is-justify-content-center", "is-flex-direction-column",
+                    "is-align-content-center", "mt-6"
+                )
+                div {
+                    classes = setOf("")
+                    button {
+                        classes = setOf("button", "is-primary", "is-medium")
+                        span {
+                            classes = setOf("icon")
+                            i {
+                                classes = setOf("material-symbols-outlined")
+                                +"add_task"
+                            }
+                        }
+                        span { +"New task" }
+                    }
+                }
                 insert(childTemplate, content)
             }
             script {

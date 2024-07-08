@@ -17,6 +17,7 @@ class TableComponent(val tasks: List<Task>) : Template<FlowContent> {
                     th { +"Name" }
                     th { +"Note" }
                     th { +"Creation Date" }
+                    th { +"Actions" }
                 }
             }
             tbody {
@@ -26,6 +27,21 @@ class TableComponent(val tasks: List<Task>) : Template<FlowContent> {
                         td { +task.name }
                         td { +task.note }
                         td { +task.createdAt.toString() }
+                        td {
+                            classes = setOf(
+                                "is-flex", "is-justify-content-center",
+                                "is-align-content-center", "icon-gap",
+                                "is-clickable"
+                            )
+                            span {
+                                classes = setOf("icon", "material-symbols-outlined")
+                                +"edit"
+                            }
+                            span {
+                                classes = setOf("icon", "material-symbols-outlined")
+                                +"delete"
+                            }
+                        }
                     }
                 }
             }

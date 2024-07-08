@@ -1,5 +1,14 @@
 @import "https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css";
+@import "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined";
 
 :root {
     --bulma-body-overflow-y: auto;
+}
+
+.icon-gap {
+    gap: 8px;
+}
+
+.container-init-gap {
+    gap: 24px;
 }
