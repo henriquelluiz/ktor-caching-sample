@@ -55,7 +55,7 @@ fun Application.configureTaskUiRouting() {
                     stylePath = "/static/css/style.css",
                     scriptPath = "/static/js/script.js",
                     pageTitle = "New Task",
-                    childTemplate = FormComponent(null, "addTask"),
+                    childTemplate = FormComponent(null, "addTask()"),
                 )
             ) {
                 header {
